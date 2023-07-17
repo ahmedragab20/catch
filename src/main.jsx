@@ -6,9 +6,18 @@ const fetch = initCatcher({
   // this recommended if you use the library in a .js file for better developer experience
   url: "https://dummyjson.com/",
   alias: "$fetch",
+  defaultOptions: {
+    headers: {
+      Pragma: "Ahmed is the best developer",
+    },
+  },
+  onReq: reqInterceptor,
+  onRes: resInterceptor,
+  onErr: onError,
 });
+// TODO:: it only accepts one headers object, whether the default or the one passed in the options
 
-const deletePassenger = async (id) => {
+async function deletePassenger(id) {
   try {
     const response = await fetch({
       method: "DELETE",
@@ -19,6 +28,26 @@ const deletePassenger = async (id) => {
   } catch (error) {
     console.error(error);
   }
+}
+
+function reqInterceptor(req) {
+  console.log("outside req", req);
+
+  req.headers.set("Pragma", "Ahmed is the best developer EVEEEER");
+  if (req.method === "GET") {
+    console.log("GET :)");
+  }
+  return req;
+}
+
+function resInterceptor (res) {
+  console.log("outside res", res);
+  console.log(res);
+};
+
+function onError (error) {
+  console.warn(`Error: ${error.message}`);
+  console.error(error);
 };
 
 const getProducts = async () => {
@@ -26,6 +55,17 @@ const getProducts = async () => {
     const response = await fetch({
       method: "GET",
       ep: "products",
+      options: {
+        body: {
+          id: 1,
+        },
+        headers: {
+          Pragma: "Ahmed is the best developer Internally and Externally",
+        },
+        /**
+         * @todo:: instead of sending them in the request options, send them in the global options object
+         */
+      },
     });
 
     console.log(response);
@@ -37,7 +77,7 @@ const getProducts = async () => {
 createRoot(document.getElementById("app")).render(
   <div className="p-5">
     <div>
-      <h1 className="font-mono text-2xl">React Catcher</h1>
+      <h1 className="font-mono text-2xl">Catcher</h1>
     </div>
 
     <div className="mt-10">
