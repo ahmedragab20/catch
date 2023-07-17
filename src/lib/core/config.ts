@@ -1,7 +1,7 @@
 import { Catch } from "../index";
 import { IFetchGlobalConfig } from "../types/req";
 import { validGlobalConfig } from "../utils/validation";
-
+import { AppWindowState } from "../state/window";
 export default (req: IFetchGlobalConfig) => {
   const { url, defaultOptions = {} } = req;
 
@@ -17,6 +17,9 @@ export default (req: IFetchGlobalConfig) => {
   });
 
   fetch.call = fetch.call.bind(fetch);
+
+  // set the fetch instance to the window object
+  new AppWindowState('$catch', fetch).set();
 
   return fetch.call;
 };

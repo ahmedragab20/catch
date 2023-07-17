@@ -11,7 +11,8 @@ interface IReqOptions {
   [key: string]: any;
 }
 export interface IRequestConfig {
-  ep: string;
+  fullPath?: string;
+  ep?: string;
   method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
   options?: IReqOptions;
 }

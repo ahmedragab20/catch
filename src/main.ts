@@ -1,31 +1,27 @@
 import initCatcher from "./lib/core/config";
 
-const fetch = initCatcher({
+initCatcher({
   url: "https://dummyjson.com/",
   defaultOptions: {},
 });
 
-const data = await fetch({
-  ep: "/products",
-  method: "GET",
-  options: {
-    body: {
-      name: "Ragab",
-    },
-  },
-}).then(async (res) => {
-  await fetch({
-    ep: "/products",
-    method: "GET",
-  });
-});
+// one you initialize the catcher, you can use it like this: $catch({ ep: "/api" })
 
-const data2 = await fetch({
-  ep: "/products",
-  method: "GET",
-  options: {
-    body: {
-      name: "Ragab",
-    },
-  },
-}).then((res) => console.log(res));
+(function App() {
+  document.createElement("div").setAttribute("id", "app");
+
+  const app = document.getElementById("app")!;
+
+  app.innerHTML = `
+    <h1>Catcher</h1>
+    <p>Catcher is a simple fetch wrapper that makes your life easier.</p>
+
+    <button id="btn">Fetch</button>
+  `;
+
+  const btn = document.getElementById("btn")!;
+
+  btn.addEventListener("click", async () => {
+    console.log(window.$catch);
+  });
+})();

@@ -3,7 +3,7 @@ import { IRequestConfig } from "../types/req";
 export const validRequestConfig = (req: IRequestConfig) => {
   const { ep, method = "GET", options = {} } = req;
 
-  if (!ep) {
+  if (!ep && !req.fullPath) {
     throw new Error("ep is required");
   } else if (typeof ep !== "string") {
     throw new Error("ep must be a string");
