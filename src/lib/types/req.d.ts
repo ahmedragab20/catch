@@ -1,6 +1,7 @@
 export interface IFetchGlobalConfig {
   url: string;
   defaultOptions?: any;
+  alias?: string;
 }
 
 interface IReqData {

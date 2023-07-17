@@ -3,23 +3,25 @@ import { IFetchGlobalConfig } from "../types/req";
 import { validGlobalConfig } from "../utils/validation";
 import { AppWindowState } from "../state/window";
 export default (req: IFetchGlobalConfig) => {
-  const { url, defaultOptions = {} } = req;
+  const { url, defaultOptions = {}, alias = "$catch" } = req;
 
   // throw error if there is an unvalid global config
-  validGlobalConfig({
+  validGlobalConfig(req);
+
+  let { call } = new Catch({
     url,
     defaultOptions,
   });
 
-  const fetch = new Catch({
-    url,
-    defaultOptions,
-  });
-
-  fetch.call = fetch.call.bind(fetch);
+  call = call.bind(fetch);
 
   // set the fetch instance to the window object
-  new AppWindowState('$catch', fetch).set();
+  new AppWindowState(alias, call).set();
 
-  return fetch.call;
+  console.log(
+    `%c🤝🏻 ${alias} Is Ready 🤝🏻`,
+    "color: #6050DC; font-weight: bold; font-size: 0.8rem;"
+  );
+
+  return call;
 };

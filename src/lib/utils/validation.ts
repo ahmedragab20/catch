@@ -1,4 +1,4 @@
-import { IRequestConfig } from "../types/req";
+import { IFetchGlobalConfig, IRequestConfig } from "../types/req";
 
 export const validRequestConfig = (req: IRequestConfig) => {
   const { ep, method = "GET", options = {} } = req;
@@ -14,14 +14,18 @@ export const validRequestConfig = (req: IRequestConfig) => {
   }
 };
 
-export const validGlobalConfig = (config: any) => {
-  const { url, defaultOptions = {} } = config;
+export const validGlobalConfig = (config: IFetchGlobalConfig) => {
+  const { url, defaultOptions = {}, alias } = config;
 
-  if (!url) {
-    throw new Error("Please provide a url");
-  } else if (typeof url !== "string") {
-    throw new Error("Url must be a string");
+  if (!url || typeof url !== "string") {
+    throw new Error("url is required");
   } else if (typeof defaultOptions !== "object") {
-    throw new Error("Default options must be an object");
+    throw new Error("defaultOptions must be an object");
+  } else if (typeof alias !== "string") {
+    throw new Error("alias must be a string");
+  } else if (window[alias]) {
+    throw new Error(
+      `The alias ${alias} is already used by another variable in the global scope`
+    );
   }
 };
