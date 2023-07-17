@@ -1,6 +1,6 @@
 export interface IFetchGlobalConfig {
   url: string;
-  defaultOptions?: any;
+  defaultOptions?: object;
   alias?: string;
 }
 

@@ -4,24 +4,41 @@ import { validGlobalConfig } from "../utils/validation";
 import { AppWindowState } from "../state/window";
 export default (req: IFetchGlobalConfig) => {
   const { url, defaultOptions = {}, alias = "$catch" } = req;
+  console.log("req", {
+    url,
+    defaultOptions,
+    alias,
+  });
 
   // throw error if there is an unvalid global config
   validGlobalConfig(req);
 
-  let { call } = new Catch({
+  const lib = new Catch({
     url,
     defaultOptions,
   });
 
-  call = call.bind(fetch);
+  lib.call = lib.call.bind(lib);
 
   // set the fetch instance to the window object
-  new AppWindowState(alias, call).set();
+  new AppWindowState(alias, lib).set();
+
+  const genreateRnadomColor = () => {
+    const colors = [
+      "#7365e0",
+      "#dc6050",
+      "#f5b700",
+      "#C04000",
+      "#008080",
+    ];
+
+    return colors[Math.floor(Math.random() * colors.length)];
+  };
 
   console.log(
-    `%c🤝🏻 ${alias} Is Ready 🤝🏻`,
-    "color: #6050DC; font-weight: bold; font-size: 0.8rem;"
+    `%c🎉 [${alias}] Is now global! you can use it anywhere inside of your application`,
+    `color: ${genreateRnadomColor()}; font-weight: bold; font-size: 0.75rem;`
   );
 
-  return call;
+  return lib.call;
 };

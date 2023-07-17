@@ -15,9 +15,17 @@ export class Catch {
       // throw error if there is an unvalid request config
       validRequestConfig(req);
 
+      console.log({
+        fullPath,
+        ep,
+        method,
+        options,
+        config: this.config,
+      });
+
       let opts = {
-        ...this.config.defaultOptions,
-        ...options,
+        ...(this.config.defaultOptions || {}),
+        ...(options || {}),
       };
 
       if (method !== "GET" && opts.body && typeof opts.body === "object") {
@@ -33,12 +41,12 @@ export class Catch {
         ep += body;
       }
 
-      const fullUrl =
-        fullPath || !!this.config.url
-          ? `${this.config.url}${ep?.[0] === "/" ? ep.slice(1) : ep}`
-          : (ep as string);
+      const fullUrl = !!this.config.url
+        ? `${this.config.url}${ep?.[0] === "/" ? ep.slice(1) : ep}`
+        : (ep as string);
 
-      const response = await fetch(fullUrl, {
+      // @ts-ignore [TODO]
+      const response = await fetch(fullPath || fullUrl, {
         method,
         ...opts,
       });

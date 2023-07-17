@@ -1,11 +1,11 @@
 import { IFetchGlobalConfig, IRequestConfig } from "../types/req";
 
 export const validRequestConfig = (req: IRequestConfig) => {
-  const { ep, method = "GET", options = {} } = req;
+  const { ep, method = "GET", options = {}, fullPath } = req;
 
-  if (!ep && !req.fullPath) {
+  if (!ep && !fullPath) {
     throw new Error("ep is required");
-  } else if (typeof ep !== "string") {
+  } else if (ep && typeof ep !== "string" || fullPath && typeof fullPath !== "string") {
     throw new Error("ep must be a string");
   } else if (!["GET", "POST", "PUT", "DELETE", "PATCH"].includes(method)) {
     throw new Error("method must be one of GET, POST, PUT, DELETE, PATCH");
