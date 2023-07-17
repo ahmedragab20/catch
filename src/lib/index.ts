@@ -10,7 +10,8 @@ export class Catch {
   }
 
   public async call(req: IRequestConfig) {
-    let { ep, method = "GET", options = {} } = req;
+    try {
+      let { ep, method = "GET", options = {} } = req;
     // throw error if there is an unvalid request config
     validRequestConfig(req);
 
@@ -38,5 +39,8 @@ export class Catch {
     });
     const data = await response.json();
     return data;
+    } catch (error) {
+      console.error(error);
+    }
   }
 }
