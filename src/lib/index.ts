@@ -17,13 +17,12 @@ import { validRequestConfig } from "./utils/validation";
 export class Catch {
   private readonly config: Partial<IFetchGlobalConfig>;
   private cahes: IStringObject[] = []; // TODO: implement cache
+
   constructor(config: Partial<IFetchGlobalConfig>) {
     if (typeof config === "string" || !config || typeof config !== "object") {
       throw new Error(
         "Please provide valid config object, check the docs for more info"
       );
-
-      return;
     }
 
     this.config = config;
