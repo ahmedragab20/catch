@@ -1,3 +1,5 @@
+import { TCacheStrategy } from ".";
+
 export interface IFetchGlobalConfig {
   baseURL: string;
   defaultOptions?: object | any;
@@ -16,10 +18,11 @@ interface IReqOptions {
   [key: string]: any;
 }
 export interface IRequestConfig {
-  fullPath?: string;
-  ep?: string;
-  method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
-  options?: IReqOptions;
+  fullPath: string;
+  ep: string;
+  method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+  options: IReqOptions;
+  cache: "NO-CACHE" | "PER-SESSION" | "RELOAD";
 }
 
 export interface FetchInterceptor {

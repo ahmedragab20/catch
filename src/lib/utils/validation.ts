@@ -9,7 +9,7 @@ export const isRegularFunction = (fn: any) => {
 };
 
 export const validRequestConfig = (
-  req: IRequestConfig | string,
+  req: Partial<IRequestConfig> | string,
   options2?: IRequestOptions2
 ) => {
   if (typeof req === "string") {

@@ -5,7 +5,7 @@ import {
   IRequestOptions2,
 } from "./types/req";
 
-import { IStringObject } from "./types/index";
+import Cache from "./utils/Cache";
 
 import {
   prettifyRequestBody,
@@ -16,7 +16,6 @@ import { validRequestConfig } from "./utils/validation";
 
 export class Catch {
   private readonly config: Partial<IFetchGlobalConfig>;
-  private cahes: IStringObject[] = []; // TODO: implement cache
 
   constructor(config: Partial<IFetchGlobalConfig>) {
     if (typeof config === "string" || !config || typeof config !== "object") {
@@ -48,7 +47,7 @@ export class Catch {
 
   // TODO: test the post request
   public async call(
-    req: IRequestConfig | string,
+    req: Partial<IRequestConfig> | string,
     reqOptions2: IRequestOptions2 = {}
   ): Promise<any> {
     try {
@@ -68,8 +67,12 @@ export class Catch {
         url = req;
       }
 
+      const method = hasDirectURL ? "GET" : req?.method || "GET";
+      const cachingMechanism =
+        hasDirectURL || method !== "GET"
+          ? "NO-CACHE"
+          : req?.cache || "NO-CACHE";
       let ep = hasDirectURL ? null : req?.ep;
-      let method = hasDirectURL ? "GET" : req?.method || "GET";
       let options = hasDirectURL ? reqOptions2 || {} : req?.options || {};
       let fullPath = hasDirectURL ? null : req?.fullPath;
 
@@ -135,7 +138,15 @@ export class Catch {
 
       url = url || fullPath || customizedUrl;
 
-      console.log(opts);
+      const cache = new Cache(cachingMechanism);
+
+      console.log("url", url);
+
+      if (cache.isCached(url)) {
+        console.log(cache.get(url));
+
+        return cache.get(url);
+      }
 
       const response = !!hasRequestInterceptor
         ? await interceptFetch(requestInterceptor, url, {
@@ -151,6 +162,8 @@ export class Catch {
         ? ((await this.config?.onRes?.(response)) as Response)
         : response;
       const data = await modifiedResponse?.json?.();
+      // Cache the response [already handles if it doesn't have to cache it]
+      cache.set(url, data);
       return data;
     } catch (error) {
       console.error(error);

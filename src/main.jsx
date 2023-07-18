@@ -69,21 +69,26 @@ const getProducts = async () => {
 };
 
 const getProductsWithFullPath = async () => {
-  const res = fetch({
-    fullPath: "https://dummyjson.com/products",
-    options: {
-      headers: { "Content-Type": "application/json" },
-      body: {},
-    },
-  });
+  try {
+    const res = await fetch({
+      fullPath: "https://dummyjson.com/products",
+      cache: "RELOAD",
+      options: {
+        headers: { "Content-Type": "application/json" },
+      },
+    });
 
-  console.log(res);
+    console.log(res);
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 const postProductsWithFullPath = async () => {
   const res = fetch({
     method: "POST",
     fullPath: "https://dummyjson.com/products/add",
+    cache: "NO-CACHE",
     options: {
       headers: { "Content-Type": "application/json-SSDS" },
       body: {
