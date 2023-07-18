@@ -5,6 +5,8 @@ import {
   IRequestOptions2,
 } from "./types/req";
 
+import { IStringObject } from "./types/index";
+
 import {
   prettifyRequestBody,
   interceptFetch,
@@ -14,7 +16,7 @@ import { validRequestConfig } from "./utils/validation";
 
 export class Catch {
   private readonly config: Partial<IFetchGlobalConfig>;
-
+  private cahes: IStringObject[] = []; // TODO: implement cache
   constructor(config: Partial<IFetchGlobalConfig>) {
     if (typeof config === "string" || !config || typeof config !== "object") {
       throw new Error(
@@ -35,7 +37,6 @@ export class Catch {
     // handle request body
     if (method !== "GET" && opts.body && typeof opts.body === "object") {
       opts.body = prettifyRequestBody(opts.body);
-      
     } else if (method === "GET" && opts.body && typeof opts.body === "object") {
       const body = prettifyRequestBody(opts.body, { urlLike: true });
       delete opts.body;
@@ -136,7 +137,6 @@ export class Catch {
       url = url || fullPath || customizedUrl;
 
       console.log(opts);
-      
 
       const response = !!hasRequestInterceptor
         ? await interceptFetch(requestInterceptor, url, {
