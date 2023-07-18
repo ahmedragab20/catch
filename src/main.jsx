@@ -2,20 +2,19 @@ import { createRoot } from "react-dom/client";
 import initCatcher from "./lib/core/config";
 import "./index.css";
 
-const fetch = initCatcher({
+var fetch = initCatcher({
   // this recommended if you use the library in a .js file for better developer experience
-  url: "https://dummyjson.com/",
+  baseURL: "https://dummyjson.com/",
   alias: "$fetch",
   defaultOptions: {
     headers: {
-      Pragma: "Ahmed is the best developer",
+      Accept: "Ahmed is the best developer",
     },
   },
   onReq: reqInterceptor,
   onRes: resInterceptor,
   onErr: onError,
 });
-// TODO:: it only accepts one headers object, whether the default or the one passed in the options
 
 async function deletePassenger(id) {
   try {
@@ -30,45 +29,86 @@ async function deletePassenger(id) {
   }
 }
 
-function reqInterceptor(req) {
-  console.log("outside req", req);
+async function reqInterceptor(req) {
+  console.log("I got fired🎉", { req });
 
-  req.headers.set("Pragma", "Ahmed is the best developer EVEEEER");
-  if (req.method === "GET") {
-    console.log("GET :)");
-  }
+  req.headers.set("Cache-Control", "Ahmed is the best developer EVEEEER");
+
   return req;
 }
 
-function resInterceptor (res) {
+function resInterceptor(res) {
   console.log("outside res", res);
   console.log(res);
-};
 
-function onError (error) {
+  return res;
+}
+
+function onError(error) {
   console.warn(`Error: ${error.message}`);
   console.error(error);
-};
+
+  return error;
+}
 
 const getProducts = async () => {
   try {
-    const response = await fetch({
-      method: "GET",
-      ep: "products",
-      options: {
-        body: {
-          id: 1,
-        },
-        headers: {
-          Pragma: "Ahmed is the best developer Internally and Externally",
-        },
-        /**
-         * @todo:: instead of sending them in the request options, send them in the global options object
-         */
+    const response = await fetch("https://dummyjson.com/products", {
+      body: {
+        Accept: "Ahmed is the best developer From GET",
+      },
+      headers: {
+        Accept: "CHECKIIIIING...",
       },
     });
 
     console.log(response);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const getProductsWithFullPath = async () => {
+  const res = fetch({
+    fullPath: "https://dummyjson.com/products",
+    options: {
+      headers: { "Content-Type": "application/json" },
+      body: {},
+    },
+  });
+
+  console.log(res);
+};
+
+const postProductsWithFullPath = async () => {
+  const res = fetch({
+    method: "POST",
+    fullPath: "https://dummyjson.com/products/add",
+    options: {
+      headers: { "Content-Type": "application/json-SSDS" },
+      body: {
+        title: "BMW Pencil",
+      },
+    },
+  });
+
+  console.log(res);
+};
+
+const postProductsWithEP = async () => {
+  try {
+    const res = await fetch({
+      method: "POST",
+      ep: "/products/add",
+      options: {
+        headers: { "Content-Type": "application/json-ooop" },
+        body: {
+          title: "BMW Pencil",
+        },
+      },
+    });
+
+    console.log(res);
   } catch (error) {
     console.error(error);
   }
@@ -102,7 +142,7 @@ createRoot(document.getElementById("app")).render(
       </div>
       <div className="mt-5">
         <div>
-          <p className="mb-2">GET:</p>
+          <p className="mb-2">GET Directly:</p>
           <pre>
             <code className="bg-green-200 px-2 py-0.5 rounded-md">
               https://dummyjson.com/products
@@ -115,6 +155,60 @@ createRoot(document.getElementById("app")).render(
             className="bg-green-500 text-white px-4 shadow-xl active:shadow-none active:scale-95 duration-150 py-1 rounded-md"
           >
             GET
+          </button>
+        </div>
+      </div>
+      <div className="mt-5">
+        <div>
+          <p className="mb-2">GET WITH FULLPATH:</p>
+          <pre>
+            <code className="bg-green-200 px-2 py-0.5 rounded-md">
+              https://dummyjson.com/products
+            </code>
+          </pre>
+        </div>
+        <div className="mt-2">
+          <button
+            onClick={() => getProductsWithFullPath()}
+            className="bg-green-500 text-white px-4 shadow-xl active:shadow-none active:scale-95 duration-150 py-1 rounded-md"
+          >
+            GET
+          </button>
+        </div>
+      </div>
+      <div className="mt-5">
+        <div>
+          <p className="mb-2">POST WITH EP:</p>
+          <pre>
+            <code className="bg-green-200 px-2 py-0.5 rounded-md">
+              https://dummyjson.com/products/add
+            </code>
+          </pre>
+        </div>
+        <div className="mt-2">
+          <button
+            onClick={() => postProductsWithEP()}
+            className="bg-amber-500 text-white px-4 shadow-xl active:shadow-none active:scale-95 duration-150 py-1 rounded-md"
+          >
+            POST (EP)
+          </button>
+        </div>
+      </div>
+      <div className="mt-5">
+        <div>
+          <p className="mb-2">POST WITH FULLPATH:</p>
+          <pre>
+            <code className="bg-green-200 px-2 py-0.5 rounded-md">
+              https://dummyjson.com/products/add
+            </code>
+          </pre>
+        </div>
+        <div className="mt-2">
+          <button
+            onClick={() => postProductsWithFullPath()}
+            className="bg-amber-500 text-white px-4 shadow-xl active:shadow-none active:scale-95 duration-150 py-1 rounded-md"
+          >
+            POST (FULLPATH)
           </button>
         </div>
       </div>

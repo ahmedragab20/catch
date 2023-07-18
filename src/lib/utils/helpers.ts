@@ -1,18 +1,24 @@
 import { FetchInterceptor, IReqData } from "../types/req";
 
 interface IBodyOptions {
-  urlLike?: boolean;
+  urlLike: boolean;
+  jsonLike: boolean;
 }
 
-export function prettifyRequestBody(body: IReqData, opts?: IBodyOptions) {
+export function prettifyRequestBody(
+  body: IReqData,
+  opts: Partial<IBodyOptions> = {}
+) {
   if (typeof body !== "object") {
     throw new Error("body must be an object");
   }
+  if (!opts?.jsonLike) {
+    opts.jsonLike = true;
+  }
 
-  let data: any = new URLSearchParams();
-  Object.keys(body).forEach((key) => {
-    data.append(key, body[key]);
-  });
+  let data: any;
+
+  data = opts?.jsonLike ? JSON.stringify(body) : body;
 
   // redesign it to be applicable for the get requests
   if (opts?.urlLike) {
@@ -35,15 +41,15 @@ export async function interceptFetch(
   options?: RequestInit
 ): Promise<Response> {
   try {
-    // Define an array to hold the interceptors
+    // an array to hold the interceptors
     const interceptors: FetchInterceptor[] = [];
 
-    // Define a function to register interceptors
+    // a function to register interceptors
     if (typeof onUseInterceptor === "object") {
       interceptors.push(onUseInterceptor);
     }
 
-    // Define a function to execute the interceptors
+    // a function to execute the interceptors
     async function executeInterceptors(request: Request): Promise<Request> {
       let modifiedRequest = request;
 
@@ -56,7 +62,9 @@ export async function interceptFetch(
 
     // Make the actual request
     const request = new Request(url, options);
+
     const modifiedRequest = await executeInterceptors(request);
+
     const response = await fetch(modifiedRequest);
 
     return response;
@@ -66,4 +74,8 @@ export async function interceptFetch(
     }
     throw error;
   }
+}
+
+export function plainFetch(url: string, options?: RequestInit) {
+  return fetch(url, options);
 }

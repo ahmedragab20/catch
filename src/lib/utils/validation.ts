@@ -1,14 +1,27 @@
-import { IFetchGlobalConfig, IRequestConfig } from "../types/req";
+import {
+  IFetchGlobalConfig,
+  IRequestConfig,
+  IRequestOptions2,
+} from "../types/req";
 
 export const isRegularFunction = (fn: any) => {
-  return fn && fn?.hasOwnProperty("prototype");
+  return fn && {}.toString.call(fn) === "[object Function]";
 };
 
-export const validRequestConfig = (req: IRequestConfig) => {
+export const validRequestConfig = (
+  req: IRequestConfig | string,
+  options2?: IRequestOptions2
+) => {
+  if (typeof req === "string") {
+    return
+  };
+
   const { ep, method = "GET", options = {}, fullPath } = req;
 
-  if (!ep && !fullPath) {
-    throw new Error("ep is required");
+  if (!ep && !fullPath && typeof req !== "string") {
+    throw new Error(
+      "You gotta provide an object of options or a Direct URL string"
+    );
   } else if (
     (ep && typeof ep !== "string") ||
     (fullPath && typeof fullPath !== "string")
@@ -22,10 +35,10 @@ export const validRequestConfig = (req: IRequestConfig) => {
 };
 
 export const validGlobalConfig = (config: IFetchGlobalConfig) => {
-  const { url, defaultOptions = {}, alias } = config;
+  const { baseURL, defaultOptions = {}, alias } = config;
 
-  if (!url || typeof url !== "string") {
-    throw new Error("url is required");
+  if (!baseURL || typeof baseURL !== "string") {
+    throw new Error("baseURL is required");
   } else if (typeof defaultOptions !== "object") {
     throw new Error("defaultOptions must be an object");
   } else if (typeof alias !== "string") {
@@ -40,13 +53,5 @@ export const validGlobalConfig = (config: IFetchGlobalConfig) => {
     throw new Error("onReq must be a function");
   } else if (config.onRes && typeof config.onRes !== "function") {
     throw new Error("onRes must be a function");
-  } else if (
-    !isRegularFunction(config.onReq) ||
-    !isRegularFunction(config.onRes) ||
-    !isRegularFunction(config.onErr)
-  ) {
-    console.warn(
-      "you should use regular functions instead of arrow functions for onReq, onRes, and onErr"
-    );
   }
 };

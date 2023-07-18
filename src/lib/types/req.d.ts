@@ -1,10 +1,11 @@
 export interface IFetchGlobalConfig {
-  url: string;
-  defaultOptions?: object;
+  baseURL: string;
+  defaultOptions?: object | any;
   alias?: string;
   onReq?: (request: Request) => Request | Promise<Request> | void;
   onRes?: (response: Response) => Response | Promise<Response> | void;
   onErr?: (error: any) => any;
+  [key: string]: any;
 }
 
 interface IReqData {
@@ -24,4 +25,8 @@ export interface IRequestConfig {
 export interface FetchInterceptor {
   onRequest: (request: Request) => Request | Promise<Request>;
   onError: (error: any) => any;
+}
+
+export interface IRequestOptions2 {
+  [key: string]: any;
 }

@@ -3,14 +3,24 @@ import { IFetchGlobalConfig } from "../types/req";
 import { validGlobalConfig } from "../utils/validation";
 import { AppWindowState } from "../state/window";
 export default (req: IFetchGlobalConfig) => {
-  const { url, defaultOptions = {}, alias = "$catch" } = req;
+  const {
+    baseURL,
+    defaultOptions = {},
+    alias = "$catch",
+    onReq,
+    onRes,
+    onErr,
+  } = req;
 
   // throw error if there is an invalid global config
   validGlobalConfig(req);
 
   const lib = new Catch({
-    url,
+    baseURL,
     defaultOptions,
+    onReq,
+    onRes,
+    onErr,
   });
 
   lib.call = lib.call.bind(lib);
@@ -19,13 +29,7 @@ export default (req: IFetchGlobalConfig) => {
   new AppWindowState(alias, lib).set();
 
   const generateRandomColor = () => {
-    const colors = [
-      "#7365e0",
-      "#dc6050",
-      "#f5b700",
-      "#C04000",
-      "#008080",
-    ];
+    const colors = ["#7365e0", "#dc6050", "#f5b700", "#C04000", "#008080"];
 
     return colors?.[Math.floor(Math.random() * colors.length)] || "#7365e0";
   };
