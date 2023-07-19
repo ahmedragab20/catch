@@ -101,7 +101,7 @@ export class Catch {
         ? (reqOptions2?.customOptions?.cache?.toLocaleUpperCase() as TCacheStrategy) ||
           "NO-CACHE"
         : (req?.cache?.toLocaleUpperCase() as TCacheStrategy) || "NO-CACHE";
-        
+
       const clearRequestCache: boolean = !!hasDirectURL
         ? reqOptions2?.customOptions?.clearCache || false
         : req?.clearCache || false;
@@ -206,7 +206,7 @@ export class Catch {
         cache.clearCache(url);
       }
 
-      if (cache.isCached(url) && !clearRequestCache) {
+      if (cache.isCached(url)) {
         return cache.get(url);
       }
 

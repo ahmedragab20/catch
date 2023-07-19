@@ -42,10 +42,6 @@ async function deletePassenger(id) {
 }
 
 async function reqInterceptor(req) {
-  console.log({ interceptorRequest: req });
-
-  req.headers.set("Cache-Control", "Ahmed is the best developer EVEEEER");
-
   return req;
 }
 
@@ -63,7 +59,7 @@ const callEP1 = async () => {
   try {
     const response = await fetch({
       ep: "carts",
-      cache: "no-cache",
+      cache: "RELOAD",
       clearCache: true,
     });
 
@@ -78,7 +74,7 @@ const callEP2 = async () => {
     const response = await fetch("carts", {
       customOptions: {
         cache: "PER-SESSION",
-        useWithBaseURL: true
+        useWithBaseURL: true,
       },
     });
 
@@ -109,21 +105,21 @@ createRoot(document.getElementById("app")).render(
 
     <div className="mt-10 gap-2 flex">
       <button
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl shadow-xl duration-300 active:scale-95"
         onClick={() => callEP1()}
       >
         Call EP1
       </button>
 
       <button
-        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-xl shadow-xl duration-300 active:scale-95"
         onClick={() => callEP2()}
       >
         Call EP2
       </button>
 
       <button
-        className="bg-amber-500 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded"
+        className="bg-amber-500 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-xl shadow-xl duration-300 active:scale-95"
         onClick={() => callEP3()}
       >
         Call EP3
