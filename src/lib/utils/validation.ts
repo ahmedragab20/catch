@@ -1,16 +1,11 @@
-import {
-  IFetchGlobalConfig,
-  IRequestConfig,
-} from "../types/req";
+import { IFetchGlobalConfig, IRequestConfig } from "../types/req";
 import { isObject } from "./helpers";
 
 export const isRegularFunction = (fn: any) => {
   return fn && {}.toString.call(fn) === "[object Function]";
 };
 
-export const validRequestConfig = (
-  req: Partial<IRequestConfig> | string
-) => {
+export const validRequestConfig = (req: Partial<IRequestConfig> | string) => {
   // TODO:: Refactor this function to be validating the reqOptions2 as well
   if (typeof req === "string") {
     return;
@@ -27,8 +22,27 @@ export const validRequestConfig = (
     (fullPath && typeof fullPath !== "string")
   ) {
     throw new Error("ep must be a string");
-  } else if (!["GET", "POST", "PUT", "DELETE", "PATCH"].includes(method)) {
-    throw new Error("method must be one of GET, POST, PUT, DELETE, PATCH");
+  } else if (
+    ![
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE",
+      "PATCH",
+      "HEAD",
+      "OPTIONS",
+      "TRACE",
+      "CONNECT",
+      "PROPFIND",
+      "PROPPATCH",
+      "MKCOL",
+      "COPY",
+      "MOVE",
+    ].includes(method?.toUpperCase())
+  ) {
+    throw new Error(
+      "method must be one of GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS, TRACE, CONNECT, PROPFIND, PROPPATCH, MKCOL, COPY, MOVE"
+    );
   } else if (!isObject(options)) {
     throw new Error("options must be an object");
   }

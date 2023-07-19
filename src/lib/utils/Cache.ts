@@ -7,14 +7,21 @@ import {
 import CacheStore from "../state/cache-store";
 
 export default class Cache {
-  // OPTIONALS::
-  // TODO:: add remove cache method with key
-  // TODO:: add clear cache method (all)
-  // TODO:: add update cache method with key
-
+  /**
+   * The caching strategy key.
+   */
   private readonly _key: string = "NO-CACHE";
+
+  /**
+   * The set of cached keys.
+   */
   private _cachedKeys = new Set<string>();
 
+  /**
+   * Create a new instance of the Cache class.
+   * @param k - The caching strategy.
+   * @throws {Error} If an invalid caching strategy is provided.
+   */
   constructor(k: TCacheStrategy) {
     if (!supportedCachingStrategy(k)) {
       throw new Error(
@@ -25,14 +32,27 @@ export default class Cache {
     this._key = k?.toUpperCase();
   }
 
+  /**
+   * Set the cached keys.
+   * @param value - The cached key to add.
+   */
   public set cachedKeys(value: string) {
     this._cachedKeys.add(value);
   }
 
+  /**
+   * Get the cached keys.
+   * @returns An array of cached keys.
+   */
   public get cachedKeys(): string[] {
     return Array.from(this._cachedKeys);
   }
 
+  /**
+   * Check if a specific key is cached.
+   * @param key - The key to check.
+   * @returns True if the key is cached, false otherwise.
+   */
   public isCached(key: string): boolean {
     switch (this._key) {
       case "NO-CACHE":
@@ -55,11 +75,19 @@ export default class Cache {
     }
   }
 
+  /**
+   * The cache map for different caching strategies.
+   */
   private readonly cache: Map<TCacheStrategy, any> = new Map<
     TCacheStrategy,
     any
   >();
 
+  /**
+   * Set the cache for the NO-CACHE strategy.
+   * @param key - The cache key.
+   * @param value - The cache value.
+   */
   private readonly setCacheNoCache = (key: string, value: any): void => {
     this.cache.set("NO-CACHE", {
       [key]: value,
@@ -67,12 +95,22 @@ export default class Cache {
     //[TODO]:: useless but will back it later to make analyze the all the apis per session and filter the duplicated ones to speed up the app
   };
 
+  /**
+   * Get the cache for the NO-CACHE strategy.
+   * @param key - The cache key.
+   * @returns The cache value.
+   */
   private readonly getCacheNoCache = (key: string): any => {
     return {};
 
     //[TODO]:: useless but will back it later to make analyze the all the apis per session and filter the duplicated ones to speed up the app
   };
 
+  /**
+   * Set the cache for the PER-SESSION strategy.
+   * @param key - The cache key.
+   * @param value - The cache value.
+   */
   private readonly setCachePerSession = (key: string, value: any): void => {
     this.cache.set("PER-SESSION", {
       [key]: value,
@@ -105,6 +143,11 @@ export default class Cache {
     }
   };
 
+  /**
+   * Get the cache for the PER-SESSION strategy.
+   * @param key - The cache key.
+   * @returns The cache value.
+   */
   private readonly getCachePerSession = (key: string): any => {
     if (window) {
       const sessionCache = window.sessionStorage.getItem("PER-SESSION");
@@ -117,6 +160,11 @@ export default class Cache {
     }
   };
 
+  /**
+   * Set the cache for the RELOAD strategy.
+   * @param key - The cache key.
+   * @param value - The cache value.
+   */
   private readonly setCacheReload = (key: string, value: any): void => {
     this.cache.set("RELOAD", {
       [key]: value,
@@ -125,6 +173,11 @@ export default class Cache {
     new CacheStore("RELOAD").setCaches(key, value);
   };
 
+  /**
+   * Get the cache for the RELOAD strategy.
+   * @param key - The cache key.
+   * @returns The cache value.
+   */
   private readonly getCacheReload = (key: string): any => {
     // convert the cache to an array and filter it by the key
 
@@ -133,6 +186,12 @@ export default class Cache {
     return cache.getCaches(key) || {};
   };
 
+  /**
+   * Set the cache value for the specified key.
+   * @param key - The cache key.
+   * @param value - The cache value.
+   * @throws {Error} If the key or value is not provided, or if the key is not a string.
+   */
   public set(key: string, value: any): void {
     if (!key || !value || typeof key !== "string") {
       throw new Error(
@@ -159,6 +218,12 @@ export default class Cache {
     }
   }
 
+  /**
+   * Get the cache value for the specified key.
+   * @param key - The cache key.
+   * @returns The cache value.
+   * @throws {Error} If the key is not provided.
+   */
   public get(key: string): any {
     if (!key) {
       throw new Error("You must provide a key");

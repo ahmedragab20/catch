@@ -20,17 +20,19 @@ async function deletePassenger(id) {
   try {
     const response = await fetch({
       method: "DELETE",
-      ep: 'carts/1',
-      headers: { 'Content-Type': 'application/json' },
-      body: {
-        merge: true, // this will include existing products in the cart
-        products: [
-          {
-            id: 1,
-            quantity: 1,
-          },
-        ]
-      }
+      fullPath: "https://dummyjson.com/carts/1",
+      options: {
+        headers: { "Content-Type": "application/json" },
+        body: {
+          merge: true, // this will include existing products in the cart
+          products: [
+            {
+              id: 1,
+              quantity: 1,
+            },
+          ],
+        },
+      },
     });
 
     console.log(response);
@@ -61,7 +63,7 @@ const getProducts = async () => {
   try {
     const response = await fetch("products", {
       customOptions: {
-        cache: "no-cache",
+        cache: "RELOAD",
         useWithBaseURL: true,
       },
       body: {
@@ -81,23 +83,10 @@ const getProducts = async () => {
 const getProductsWithFullPath = async () => {
   try {
     const res = await fetch({
-      method: "POST",
-      ep: "carts/add",
+      ep: "carts",
+      cache: "PER-SESSION",
       options: {
         headers: { "Content-Type": "application/json" },
-        body: {
-          userId: 1,
-          products: [
-            {
-              id: 1,
-              quantity: 1,
-            },
-            {
-              id: 50,
-              quantity: 2,
-            },
-          ],
-        },
       },
     });
 

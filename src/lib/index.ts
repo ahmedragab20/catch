@@ -45,27 +45,20 @@ export class Catch {
       internalUrl += body;
     }
 
-    console.log({
-      url: internalUrl,
-      originalUrl: url,
-      opts,
-    });
-
     return { url: internalUrl, opts };
   };
 
+  /**
+   * the params structure
+   *
+   * @param req {string | Partial<IRequestConfig>} - the request url or the request config
+   * @param reqOptions2 {IRequestOptions2} - ONLY used if the first param was the Direct URL the request options
+   */
   public async call(
     req: Partial<IRequestConfig> | string,
     reqOptions2: IRequestOptions2 = {}
   ): Promise<any> {
     try {
-      /**
-       * @description for the params structure
-       *
-       * @param req {string | Partial<IRequestConfig>} - the request url or the request config
-       * @param reqOptions2 {IRequestOptions2} - ONLY used if the first param was the Direct URL the request options
-       */
-
       // throw error if used a DirectLink the second param is not an object
       const usedDirectURLWithWrongParams =
         typeof req !== "string" &&
@@ -89,6 +82,7 @@ export class Catch {
           "You can't use both ep and fullPath in the same request"
         );
       }
+
       // throw error if there is an invalid request config
       validRequestConfig(req);
 
@@ -124,6 +118,29 @@ export class Catch {
             : (ep as string);
 
         url = fullPath || customizedUrl;
+      }
+
+      // set warning on the DELETE method with object body
+      if (
+        ["DELETE", "HEAD", "OPTIONS", "TRACE"].includes(method) &&
+        isObject(options?.body)
+      ) {
+        console.warn(
+          `%cWarning: You're using the ${method} method with a request body.`,
+          "color: #ff7f00; font-weight: bold"
+        );
+        console.warn(
+          `%cThe ${method} traditionally does not support request bodies according to the HTTP/1.1 specification.`,
+          "font-weight: bold"
+        );
+        console.warn(
+          `%cSending a request body with ${method} may lead to compatibility issues, caching problems, and security risks.`,
+          "font-weight: bold"
+        );
+        console.warn(
+          "%cConsider reviewing the API documentation or guidelines to ensure proper usage and alternative approaches.",
+          "font-weight: bold"
+        );
       }
 
       // once we're done with the request config, should clear the reqOptions2 that will be sent directly to the fetch
@@ -200,8 +217,6 @@ export class Catch {
         ? ((await this.config?.onRes?.(response)) as Response)
         : response;
 
-        console.log(modifiedResponse);
-        
       const data = !!modifiedResponse?.ok
         ? await modifiedResponse?.json?.()
         : modifiedResponse;
