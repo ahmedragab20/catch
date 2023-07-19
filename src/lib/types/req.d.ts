@@ -17,6 +17,12 @@ interface IReqOptions {
   body?: IReqData;
   [key: string]: any;
 }
+
+interface IReqOptions2CustomOptions {
+  method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+  cache: "NO-CACHE" | "PER-SESSION" | "RELOAD";
+  useWithBaseURL?: boolean;
+}
 export interface IRequestConfig {
   fullPath: string;
   ep: string;
@@ -31,5 +37,6 @@ export interface FetchInterceptor {
 }
 
 export interface IRequestOptions2 {
+  customOptions?: IReqOptions2CustomOptions;
   [key: string]: any;
 }

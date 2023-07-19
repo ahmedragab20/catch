@@ -1,12 +1,16 @@
 import { TCacheStrategy } from "../types";
-import { supportedCachingStrategy, cachingStrategies } from "./helpers";
+import {
+  supportedCachingStrategy,
+  cachingStrategies,
+  isObject,
+} from "./helpers";
 import CacheStore from "../state/cache-store";
 
 export default class Cache {
+  // OPTIONALS::
   // TODO:: add remove cache method with key
   // TODO:: add clear cache method (all)
   // TODO:: add update cache method with key
-  // TODO:: test adding more than one cache per strategy [use different keys and apis]
 
   private readonly _key: string = "NO-CACHE";
   private _cachedKeys = new Set<string>();
@@ -33,20 +37,17 @@ export default class Cache {
     switch (this._key) {
       case "NO-CACHE":
         return (
-          typeof this.getCacheNoCache(key) === "object" &&
-          !!this.getCacheNoCache(key) &&
+          isObject(this.getCacheNoCache(key)) &&
           Object.keys(this.getCacheNoCache(key)).length > 0
         );
       case "PER-SESSION":
         return (
-          typeof this.getCachePerSession(key) === "object" &&
-          !!this.getCachePerSession(key) &&
+          isObject(this.getCachePerSession(key)) &&
           Object.keys(this.getCachePerSession(key)).length > 0
         );
       case "RELOAD":
         return (
-          typeof this.getCacheReload(key) === "object" &&
-          !!this.getCacheReload(key) &&
+          isObject(this.getCacheReload(key)) &&
           Object.keys(this.getCacheReload(key)).length > 0
         );
       default:
@@ -165,7 +166,7 @@ export default class Cache {
 
     switch (this._key) {
       case "NO-CACHE":
-        return {}; // this.getCacheNoCache(key);
+        return {}; // this.getCacheNoCache(key); TODO:: add it later
       case "PER-SESSION":
         return this.getCachePerSession(key);
       case "RELOAD":

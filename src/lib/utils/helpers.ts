@@ -9,7 +9,7 @@ export function prettifyRequestBody(
   body: IReqData,
   opts: Partial<IBodyOptions> = {}
 ) {
-  if (typeof body !== "object") {
+  if (!isObject(body)) {
     throw new Error("body must be an object");
   }
   if (!opts?.jsonLike) {
@@ -25,7 +25,7 @@ export function prettifyRequestBody(
     data = "?";
     Object.keys(body).forEach((key) => {
       data += `${key}=${
-        typeof body[key] === "object" ? JSON.stringify(body[key]) : body[key]
+        isObject(body[key]) ? JSON.stringify(body[key]) : body[key]
       }&`;
     });
 
@@ -45,7 +45,7 @@ export async function interceptFetch(
     const interceptors: FetchInterceptor[] = [];
 
     // a function to register interceptors
-    if (typeof onUseInterceptor === "object") {
+    if (isObject(onUseInterceptor)) {
       interceptors.push(onUseInterceptor);
     }
 
@@ -69,7 +69,7 @@ export async function interceptFetch(
 
     return response;
   } catch (error) {
-    if (typeof onUseInterceptor === "object") {
+    if (isObject(onUseInterceptor) && onUseInterceptor.onError) {
       onUseInterceptor.onError(error);
     }
     throw error;
@@ -96,4 +96,10 @@ export function uuidV4(): string {
     const v = c === "x" ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
+}
+
+export function isObject(value: any) {
+  if (!value) return false;
+
+  return value && Object.prototype.toString.call(value) === "[object Object]";
 }

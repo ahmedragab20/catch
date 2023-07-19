@@ -1,3 +1,4 @@
+import { TCacheStrategy } from "./types";
 import {
   FetchInterceptor,
   IFetchGlobalConfig,
@@ -11,6 +12,7 @@ import {
   prettifyRequestBody,
   interceptFetch,
   plainFetch,
+  isObject,
 } from "./utils/helpers";
 import { validRequestConfig } from "./utils/validation";
 
@@ -18,7 +20,7 @@ export class Catch {
   private readonly config: Partial<IFetchGlobalConfig>;
 
   constructor(config: Partial<IFetchGlobalConfig>) {
-    if (typeof config === "string" || !config || typeof config !== "object") {
+    if (!config || !isObject(config)) {
       throw new Error(
         "Please provide valid config object, check the docs for more info"
       );
@@ -29,20 +31,27 @@ export class Catch {
 
   private readonly _getRequestBody = (
     method: string,
-    ep: string,
+    url: string,
     opts: any
   ) => {
+    let internalUrl = url; // to be used in the urlLike option
     // handle request body
-    if (method !== "GET" && opts.body && typeof opts.body === "object") {
+    if (method !== "GET" && isObject(opts?.body)) {
       opts.body = prettifyRequestBody(opts.body);
-    } else if (method === "GET" && opts.body && typeof opts.body === "object") {
+    } else if (method === "GET" && isObject(opts?.body)) {
       const body = prettifyRequestBody(opts.body, { urlLike: true });
       delete opts.body;
 
-      ep += body;
+      internalUrl += body;
     }
 
-    return { ep, opts };
+    console.log({
+      url: internalUrl,
+      originalUrl: url,
+      opts,
+    });
+
+    return { url: internalUrl, opts };
   };
 
   public async call(
@@ -50,33 +59,79 @@ export class Catch {
     reqOptions2: IRequestOptions2 = {}
   ): Promise<any> {
     try {
-      if (
-        typeof req !== "string" &&
-        typeof reqOptions2 === "object" &&
-        Object.keys(reqOptions2).length
-      ) {
-        throw new Error("Not allowed method, check the docs for more details");
-      }
+      /**
+       * @description for the params structure
+       *
+       * @param req {string | Partial<IRequestConfig>} - the request url or the request config
+       * @param reqOptions2 {IRequestOptions2} - ONLY used if the first param was the Direct URL the request options
+       */
 
+      // throw error if used a DirectLink the second param is not an object
+      const usedDirectURLWithWrongParams =
+        typeof req !== "string" &&
+        isObject(reqOptions2) &&
+        Object.keys(reqOptions2).length;
+
+      // throw error if the second param is not an object
+      const usedReqOptions2AsNotObject = !isObject(reqOptions2);
+
+      if (usedDirectURLWithWrongParams || usedReqOptions2AsNotObject) {
+        throw new Error(
+          "Please provide valid params, check the docs for more info"
+        );
+      }
+      if (
+        isObject(req) &&
+        (req as IRequestConfig)?.ep &&
+        (req as IRequestConfig)?.fullPath
+      ) {
+        throw new Error(
+          "You can't use both ep and fullPath in the same request"
+        );
+      }
+      // throw error if there is an invalid request config
+      validRequestConfig(req);
+
+      // set this to be used inside the interceptors
       const that = this;
+
+      // handle request configs
       let url: string = "";
       const hasDirectURL = typeof req === "string";
 
+      const method = hasDirectURL
+        ? reqOptions2?.customOptions?.method?.toLocaleUpperCase() || "GET"
+        : req?.method?.toLocaleUpperCase() || "GET";
+
+      const cachingMechanism = hasDirectURL
+        ? (reqOptions2?.customOptions?.cache?.toLocaleUpperCase() as TCacheStrategy) ||
+          "NO-CACHE"
+        : (req?.cache?.toLocaleUpperCase() as TCacheStrategy) || "NO-CACHE";
+
+      let ep = hasDirectURL ? "" : req?.ep || "";
+      let options = hasDirectURL ? reqOptions2 || {} : req?.options || {};
+      let fullPath = hasDirectURL ? "" : req?.fullPath || "";
+
+      // handle request url
       if (hasDirectURL) {
-        url = req;
+        url = !!reqOptions2.customOptions?.useWithBaseURL
+          ? `${this.config.baseURL}${req}`
+          : `${req}`; // ✅
+      } else {
+        const customizedUrl =
+          !!this.config.baseURL && !!ep
+            ? `${this.config.baseURL}${ep}`
+            : (ep as string);
+
+        url = fullPath || customizedUrl;
       }
 
-      const method = hasDirectURL ? "GET" : req?.method || "GET";
-      const cachingMechanism =
-        hasDirectURL || method !== "GET"
-          ? "NO-CACHE"
-          : req?.cache || "NO-CACHE";
-      let ep = hasDirectURL ? null : req?.ep;
-      let options = hasDirectURL ? reqOptions2 || {} : req?.options || {};
-      let fullPath = hasDirectURL ? null : req?.fullPath;
+      // once we're done with the request config, should clear the reqOptions2 that will be sent directly to the fetch
+      if (hasDirectURL && reqOptions2?.customOptions) {
+        delete reqOptions2.customOptions;
+      }
 
-      // throw error if there is an invalid request config
-      validRequestConfig(req);
+      // handle request options
       let opts: any = {};
       if (options && !!Object.keys(options).length) {
         Object.keys(options).forEach((key) => {
@@ -94,33 +149,23 @@ export class Catch {
       }
 
       // handle request body
-      if (method && ep && !fullPath) {
-        // EP (endpoint) structure
-        ep = this._getRequestBody(method, ep, opts).ep;
-        opts = this._getRequestBody(method, ep, opts).opts;
-      } else if (fullPath && opts?.body) {
-        // options fullPath structure
-        if (fullPath.includes("?")) {
-          throw new Error("You're URL already is quired");
+      if (
+        method &&
+        opts &&
+        !!isObject(opts) &&
+        Object.keys(opts)?.length &&
+        isObject(opts?.body)
+      ) {
+        if (!url) {
+          throw new Error("there's something wrong with the URL");
         }
-
-        fullPath = this._getRequestBody(method, fullPath, opts).ep;
-        opts = this._getRequestBody(method, fullPath, opts).opts;
-      } else if (url && reqOptions2?.body) {
-        // Direct URL structure
         if (url.includes("?")) {
           throw new Error("You're URL already is quired");
         }
 
-        url = `${url}${prettifyRequestBody(opts.body, { urlLike: true })}`;
-        delete opts?.body; // once this way only allowed for the GET request
+        opts.body = this._getRequestBody(method, url, opts).opts.body;
+        url = this._getRequestBody(method, url, opts).url; // whether it'll be returned the same or with the body
       }
-
-      // handle request url
-      const customizedUrl =
-        !!this.config.baseURL && ep
-          ? `${this.config.baseURL}${ep?.[0] === "/" ? ep.slice(1) : ep}`
-          : (ep as string);
 
       // Define interceptor functions
       const requestInterceptor: FetchInterceptor = {
@@ -132,17 +177,15 @@ export class Catch {
         },
       };
 
-      // Execute the request
-      const hasRequestInterceptor = !!this.config.onReq; // to not execute the interceptor if it's not needed [performance]
+      // TIP:: the cache will be used only if the request method is GET
+      const cache = new Cache(method !== "GET" ? "NO-CACHE" : cachingMechanism);
 
-      url = url || fullPath || customizedUrl;
-
-      const cache = new Cache(cachingMechanism);
-      
       if (cache.isCached(url)) {
         return cache.get(url);
       }
 
+      // Execute the request
+      const hasRequestInterceptor = !!this.config.onReq; // to not execute the interceptor if it's not needed [performance]
       const response = !!hasRequestInterceptor
         ? await interceptFetch(requestInterceptor, url, {
             method,
@@ -156,7 +199,12 @@ export class Catch {
       const modifiedResponse = !!this.config?.onRes
         ? ((await this.config?.onRes?.(response)) as Response)
         : response;
-      const data = await modifiedResponse?.json?.();
+
+        console.log(modifiedResponse);
+        
+      const data = !!modifiedResponse?.ok
+        ? await modifiedResponse?.json?.()
+        : modifiedResponse;
       // Cache the response [already handles if it doesn't have to cache it]
       cache.set(url, data);
       return data;

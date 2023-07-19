@@ -1,20 +1,20 @@
 import {
   IFetchGlobalConfig,
   IRequestConfig,
-  IRequestOptions2,
 } from "../types/req";
+import { isObject } from "./helpers";
 
 export const isRegularFunction = (fn: any) => {
   return fn && {}.toString.call(fn) === "[object Function]";
 };
 
 export const validRequestConfig = (
-  req: Partial<IRequestConfig> | string,
-  options2?: IRequestOptions2
+  req: Partial<IRequestConfig> | string
 ) => {
+  // TODO:: Refactor this function to be validating the reqOptions2 as well
   if (typeof req === "string") {
-    return
-  };
+    return;
+  }
 
   const { ep, method = "GET", options = {}, fullPath } = req;
 
@@ -29,7 +29,7 @@ export const validRequestConfig = (
     throw new Error("ep must be a string");
   } else if (!["GET", "POST", "PUT", "DELETE", "PATCH"].includes(method)) {
     throw new Error("method must be one of GET, POST, PUT, DELETE, PATCH");
-  } else if (options && typeof options !== "object") {
+  } else if (!isObject(options)) {
     throw new Error("options must be an object");
   }
 };
@@ -39,7 +39,7 @@ export const validGlobalConfig = (config: IFetchGlobalConfig) => {
 
   if (!baseURL || typeof baseURL !== "string") {
     throw new Error("baseURL is required");
-  } else if (typeof defaultOptions !== "object") {
+  } else if (!isObject(defaultOptions)) {
     throw new Error("defaultOptions must be an object");
   } else if (typeof alias !== "string") {
     throw new Error("alias must be a string");
