@@ -61,13 +61,13 @@ export default class Cache {
     this.cache.set("NO-CACHE", {
       [key]: value,
     });
-    //TODO:: useless but will back it later to make analyze the all the apis per session and filter the duplicated ones to speed up the app
+    //[TODO]:: useless but will back it later to make analyze the all the apis per session and filter the duplicated ones to speed up the app
   };
 
   private readonly getCacheNoCache = (key: string): any => {
     return {};
 
-    //TODO:: useless but will back it later to make analyze the all the apis per session and filter the duplicated ones to speed up the app
+    //[TODO]:: useless but will back it later to make analyze the all the apis per session and filter the duplicated ones to speed up the app
   };
 
   private readonly setCachePerSession = (key: string, value: any): void => {

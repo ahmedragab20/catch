@@ -45,7 +45,6 @@ export class Catch {
     return { ep, opts };
   };
 
-  // TODO: test the post request
   public async call(
     req: Partial<IRequestConfig> | string,
     reqOptions2: IRequestOptions2 = {}
