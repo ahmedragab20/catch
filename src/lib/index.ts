@@ -1,240 +1,124 @@
+import initCatch from "./core/config";
 import { TCacheStrategy } from "./types";
-import {
-  FetchInterceptor,
-  IFetchGlobalConfig,
-  IRequestConfig,
-  IRequestOptions2,
-} from "./types/req";
-
 import Cache from "./utils/Cache";
 
-import {
-  prettifyRequestBody,
-  interceptFetch,
-  plainFetch,
-  isObject,
-} from "./utils/helpers";
-import { validRequestConfig } from "./utils/validation";
-
-export class Catch {
-  private readonly config: Partial<IFetchGlobalConfig>;
-
-  constructor(config: Partial<IFetchGlobalConfig>) {
-    if (!config || !isObject(config)) {
-      throw new Error(
-        "Please provide valid config object, check the docs for more info"
-      );
-    }
-
-    this.config = config;
+/**
+ * Custom hook to manage caching based on the provided caching strategy.
+ * @param strategy - The caching strategy to use.
+ * @param key - The key for the cache.
+ * @param value - The value to be cached.
+ * @returns An object with cache management functions.
+ * @throws {Error} If the caching strategy is not provided.
+ */
+const useCacheUtil = (strategy: TCacheStrategy) => {
+  if (!strategy) {
+    throw new Error("Please provide a caching strategy");
   }
 
-  private readonly _getRequestBody = (
-    method: string,
-    url: string,
-    opts: any
-  ) => {
-    let internalUrl = url; // to be used in the urlLike option
-    // handle request body
-    if (method !== "GET" && isObject(opts?.body)) {
-      opts.body = prettifyRequestBody(opts.body);
-    } else if (method === "GET" && isObject(opts?.body)) {
-      const body = prettifyRequestBody(opts.body, { urlLike: true });
-      delete opts.body;
-
-      internalUrl += body;
-    }
-
-    return { url: internalUrl, opts };
-  };
+  const cache = new Cache(strategy);
 
   /**
-   * the params structure
-   *
-   * @param req {string | Partial<IRequestConfig>} - the request url or the request config
-   * @param reqOptions2 {IRequestOptions2} - ONLY used if the first param was the Direct URL the request options
+   * Get the cached keys.
+   * @returns An array of cached keys.
    */
-  public async call(
-    req: Partial<IRequestConfig> | string,
-    reqOptions2: IRequestOptions2 = {}
-  ): Promise<any> {
-    try {
-      // throw error if used a DirectLink the second param is not an object
-      const usedDirectURLWithWrongParams =
-        typeof req !== "string" &&
-        isObject(reqOptions2) &&
-        Object.keys(reqOptions2).length;
+  const getCachedKeys = () => cache.cachedKeys;
 
-      // throw error if the second param is not an object
-      const usedReqOptions2AsNotObject = !isObject(reqOptions2);
+  /**
+   * Get the cached value for the specified key.
+   * @param key - The cache key.
+   * @returns The cached value.
+   */
+  const get = (key: string) => cache.get(key);
 
-      if (usedDirectURLWithWrongParams || usedReqOptions2AsNotObject) {
-        throw new Error(
-          "Please provide valid params, check the docs for more info"
-        );
-      }
-      if (
-        isObject(req) &&
-        (req as IRequestConfig)?.ep &&
-        (req as IRequestConfig)?.fullPath
-      ) {
-        throw new Error(
-          "You can't use both ep and fullPath in the same request"
-        );
-      }
+  /**
+   * Set the cache value for the specified key.
+   * @param key - The cache key.
+   * @param value - The cache value.
+   */
+  const set = (key: string, value: any) => cache.set(key, value);
 
-      // throw error if there is an invalid request config
-      validRequestConfig(req);
+  /**
+   * Clear the cache for the specified key.
+   * @param key - The cache key to clear.
+   */
+  const clearCache = (key: string) => cache.clearCache(key);
 
-      // set this to be used inside the interceptors
-      const that = this;
+  /**
+   * Clear all caches based on the caching strategy.
+   */
+  const clearAllCaches = () => cache.clearAllCaches();
 
-      // handle request configs
-      let url: string = "";
-      const hasDirectURL = typeof req === "string";
+  /**
+   * Check if a specific key is cached.
+   * @param key - The cache key.
+   * @returns True if the key is cached, false otherwise.
+   */
+  const isCached = (key: string) => cache.isCached(key);
 
-      const method = hasDirectURL
-        ? reqOptions2?.customOptions?.method?.toLocaleUpperCase() || "GET"
-        : req?.method?.toLocaleUpperCase() || "GET";
+  return {
+    getCachedKeys,
+    get,
+    set,
+    clearCache,
+    clearAllCaches,
+    isCached,
+  };
+};
 
-      const cachingMechanism = hasDirectURL
-        ? (reqOptions2?.customOptions?.cache?.toLocaleUpperCase() as TCacheStrategy) ||
-          "NO-CACHE"
-        : (req?.cache?.toLocaleUpperCase() as TCacheStrategy) || "NO-CACHE";
+/**
+ * This is the main entry point of the library, used to configure global settings.
+ * @param {IFetchGlobalConfig} req - The global configuration object for the library.
+ * @returns {Function} - A function to use the configured settings.
+ * @example
+ * import { $catch } from "ar-catch";
+ *
+ * // Configure the library with global settings
+ * catch({
+ *   // The base URL used for all requests
+ *   baseURL: "your.base.url",
+ *
+ *   // The default alias that you want to use to call the library
+ *   alias: "$anything",
+ *
+ *   // The default options for all requests, similar to the options in the fetch() method
+ *   defaultOptions: {
+ *     headers: {},
+ *     ...etc
+ *   },
+ *
+ *   // This function will be executed before the request is sent
+ *   onReq: (req) => {
+ *     // Modify the request object or perform actions before sending the request
+ *     // e.g., adding custom headers, authentication, etc.
+ *   },
+ *
+ *   // This function will be executed after the request is sent and a response is received
+ *   onRes: (res) => {
+ *     // Process the response or perform actions after receiving the response
+ *     // e.g., handling global error responses, logging, etc.
+ *   },
+ *
+ *   // This function will be executed if there is an error during the request or response handling
+ *   onErr: (err) => {
+ *     // Handle the error or perform actions when an error occurs
+ *     // e.g., handling network errors, displaying error messages, etc.
+ *   },
+ * });
+ *
+ * @tip if you found an issue to access the alias globally, you can just use (window.yourAlias)
+ */
+const $catch = initCatch;
 
-      const clearRequestCache: boolean = !!hasDirectURL
-        ? reqOptions2?.customOptions?.clearCache || false
-        : req?.clearCache || false;
+/**
+ * a utility function to manage caching based on the provided caching strategy.
+ * @namespace useCache
+ * @param {TCacheStrategy} strategy - The caching strategy to use.
+ * @returns An object with cache management functions.
+ * @throws {Error} If the caching strategy is not provided.
+ **/
+const useCache = useCacheUtil;
 
-      let ep = hasDirectURL ? "" : req?.ep || "";
-      let options = hasDirectURL ? reqOptions2 || {} : req?.options || {};
-      let fullPath = hasDirectURL ? "" : req?.fullPath || "";
-
-      // handle request url
-      if (hasDirectURL) {
-        url = !!reqOptions2.customOptions?.useWithBaseURL
-          ? `${this.config.baseURL}${req}`
-          : `${req}`; // ✅
-      } else {
-        const customizedUrl =
-          !!this.config.baseURL && !!ep
-            ? `${this.config.baseURL}${ep}`
-            : (ep as string);
-
-        url = fullPath || customizedUrl;
-      }
-
-      // set warning on the DELETE method with object body
-      if (
-        ["DELETE", "HEAD", "OPTIONS", "TRACE"].includes(method) &&
-        isObject(options?.body)
-      ) {
-        console.warn(
-          `%cWarning: You're using the ${method} method with a request body.`,
-          "color: #ff7f00; font-weight: bold"
-        );
-        console.warn(
-          `%cThe ${method} traditionally does not support request bodies according to the HTTP/1.1 specification.`,
-          "font-weight: bold"
-        );
-        console.warn(
-          `%cSending a request body with ${method} may lead to compatibility issues, caching problems, and security risks.`,
-          "font-weight: bold"
-        );
-        console.warn(
-          "%cConsider reviewing the API documentation or guidelines to ensure proper usage and alternative approaches.",
-          "font-weight: bold"
-        );
-      }
-
-      // once we're done with the request config, should clear the reqOptions2 that will be sent directly to the fetch
-      if (hasDirectURL && reqOptions2?.customOptions) {
-        delete reqOptions2.customOptions;
-      }
-
-      // handle request options
-      let opts: any = {};
-      if (options && !!Object.keys(options).length) {
-        Object.keys(options).forEach((key) => {
-          if (this.config.defaultOptions?.[key] && options?.[key]) {
-            opts[key] = {
-              ...this.config.defaultOptions?.[key],
-              ...options[key],
-            };
-
-            return;
-          }
-
-          opts[key] = options?.[key];
-        });
-      }
-
-      // handle request body
-      if (
-        method &&
-        opts &&
-        !!isObject(opts) &&
-        Object.keys(opts)?.length &&
-        isObject(opts?.body)
-      ) {
-        if (!url) {
-          throw new Error("there's something wrong with the URL");
-        }
-        if (url.includes("?")) {
-          throw new Error("You're URL already is quired");
-        }
-
-        opts.body = this._getRequestBody(method, url, opts).opts.body;
-        url = this._getRequestBody(method, url, opts).url; // whether it'll be returned the same or with the body
-      }
-
-      // Define interceptor functions
-      const requestInterceptor: FetchInterceptor = {
-        onRequest: function (newReq: Request): any {
-          return that.config?.onReq?.(newReq);
-        },
-        onError: function (error: any) {
-          return that.config?.onErr?.(error);
-        },
-      };
-
-      // TIP:: the cache will be used only if the request method is GET
-      const cache = new Cache(method !== "GET" ? "NO-CACHE" : cachingMechanism);
-
-      // Clear the cache if needed
-      if (clearRequestCache) {
-        cache.clearCache(url);
-      }
-
-      if (cache.isCached(url)) {
-        return cache.get(url);
-      }
-
-      // Execute the request
-      const hasRequestInterceptor = !!this.config.onReq; // to not execute the interceptor if it's not needed [performance]
-      const response = !!hasRequestInterceptor
-        ? await interceptFetch(requestInterceptor, url, {
-            method,
-            ...opts,
-          })
-        : await plainFetch(url, {
-            method,
-            ...opts,
-          });
-      // Modify the response object
-      const modifiedResponse = !!this.config?.onRes
-        ? ((await this.config?.onRes?.(response)) as Response)
-        : response;
-
-      const data = !!modifiedResponse?.ok
-        ? await modifiedResponse?.json?.()
-        : modifiedResponse;
-      // Cache the response [already handles if it doesn't have to cache it]
-      cache.set(url, data);
-      return data;
-    } catch (error) {
-      console.error(error);
-      return this.config?.onErr?.(error);
-    }
-  }
-}
+export {
+  $catch,
+  useCache
+};

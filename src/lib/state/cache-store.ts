@@ -91,11 +91,8 @@ export default class CacheStore implements ICacheStore {
   /**
    * Clear all the caches.
    * @returns void
-    **/
+   **/
   public clearAllCaches(): void {
-    // TODO: Implement this method.
-    // TODO: expose the methods that are gonna be available to the user.
-
     new AppWindowState(this.container).remove();
   }
 }

@@ -1,8 +1,8 @@
 import { createRoot } from "react-dom/client";
-import initCatcher from "./lib/core/config";
+import { $catch, useCache } from "./lib/index";
 import "./index.css";
 
-var fetch = initCatcher({
+var fetch = $catch({
   // this recommended if you use the library in a .js file for better developer experience
   baseURL: "https://dummyjson.com/",
   alias: "$fetch",
@@ -15,6 +15,8 @@ var fetch = initCatcher({
   onRes: resInterceptor,
   onErr: onError,
 });
+
+const cache = useCache("RELOAD");
 
 async function deletePassenger(id) {
   try {

@@ -1,4 +1,4 @@
-import { Catch } from "../index";
+import { Catch } from "./index";
 import { IFetchGlobalConfig } from "../types/req";
 import { validGlobalConfig } from "../utils/validation";
 import { AppWindowState } from "../state/window";
