@@ -19,7 +19,7 @@ export interface IFetchGlobalConfig {
   /**
    * A callback function to intercept and modify outgoing requests
    * before they are sent
-   * 
+   *
    * @param request - The outgoing request object
    * @returns The modified request object or a promise resolving to the modified request object
    * or void to proceed with the original request
@@ -29,7 +29,7 @@ export interface IFetchGlobalConfig {
   /**
    * A callback function to intercept and modify incoming responses
    * before they are returned
-   * 
+   *
    * @param response - The incoming response object
    * @returns The modified response object or a promise resolving to the modified response object
    * or void to proceed with the original response
@@ -38,7 +38,7 @@ export interface IFetchGlobalConfig {
 
   /**
    * A callback function to handle errors that occur during API requests
-   * 
+   *
    * @param error - The error object
    * @returns The modified error object or any other value to handle the error in a custom way
    */
@@ -46,7 +46,7 @@ export interface IFetchGlobalConfig {
 
   /**
    * Additional global configuration options
-   * 
+   *
    * @remarks
    * This allows specifying any custom options for the global configuration by using key-value pairs.
    * The keys can be of any string type, and the values can be of any type.
@@ -54,11 +54,10 @@ export interface IFetchGlobalConfig {
   [key: string]: any;
 }
 
-
 interface IReqData {
   /**
    * The request body data.
-   * 
+   *
    * @remarks
    * This allows specifying any key-value pairs for the request body.
    * The keys can be of any string type, and the values can be of any type.
@@ -126,6 +125,16 @@ interface IReqOptions2CustomOptions {
   cache: "NO-CACHE" | "PER-SESSION" | "RELOAD";
 
   /**
+   * Clear any cached data for the request
+   *
+   * @remarks
+   *
+   * - `true`: Clears the cached data for the request no matter what the caching strategy is
+   * - `false` or not provided: does not affect the cached data for the request, so you can use the old caching strategy to get the cached data instead of making a new request
+   */
+  clearCache?: boolean;
+
+  /**
    * Specifies whether the request should use the base URL
    *
    * - `true`: The base URL will be used in the request
@@ -191,6 +200,16 @@ export interface IRequestConfig {
    * - `RELOAD`: Indicates the resource should be reloaded without using cache
    */
   cache: "NO-CACHE" | "PER-SESSION" | "RELOAD";
+
+  /**
+   * Clear any cached data for the request
+   *
+   * @remarks
+   *
+   * - `true`: Clears the cached data for the request no matter what the caching strategy is
+   * - `false` or not provided: does not affect the cached data for the request, so you can use the old caching strategy to get the cached data instead of making a new request
+   */
+  clearCache?: boolean;
 }
 
 export interface IRequestOptions2 {
@@ -201,7 +220,7 @@ export interface IRequestOptions2 {
 
   /**
    * Additional options for the request
-   * 
+   *
    * @remarks
    * This allows specifying any custom options for the request by using key-value pairs.
    * The keys can be of any string type, and the values can be of any type.
@@ -212,7 +231,7 @@ export interface IRequestOptions2 {
 export interface FetchInterceptor {
   /**
    * A callback function to intercept and modify outgoing requests before they are sent.
-   * 
+   *
    * @param request - The outgoing request object
    * @returns The modified request object or a promise resolving to the modified request object
    */
@@ -220,7 +239,7 @@ export interface FetchInterceptor {
 
   /**
    * A callback function to handle errors that occur during the fetch request.
-   * 
+   *
    * @param error - The error object
    * @returns The modified error object or any other value to handle the error in a custom way
    */

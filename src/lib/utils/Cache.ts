@@ -187,6 +187,56 @@ export default class Cache {
   };
 
   /**
+   *
+   * clear Cache by key from all the strategies that have it
+   * @param key - The cache key.
+   */
+  public clearCache(key: string): void {
+    const strategies = cachingStrategies();
+
+    strategies.forEach((strategy) => {
+      if (strategy.toUpperCase() === "PER-SESSION") {
+        if (window) {
+          const sessionCache = window.sessionStorage.getItem("PER-SESSION");
+
+          if (sessionCache) {
+            const parsedSessionCache = JSON.parse(sessionCache) || {};
+
+            delete parsedSessionCache[key];
+
+            window.sessionStorage.setItem(
+              "PER-SESSION",
+              JSON.stringify({
+                ...parsedSessionCache,
+              })
+            );
+          }
+        }
+      } else if (strategy.toUpperCase() === "RELOAD") {
+        new CacheStore("RELOAD").clearCache(key);
+      }
+    });
+  }
+
+  /**
+   * clears all the cache from all the strategies
+   * @returns void
+   */
+  public clearAllCaches(): void {
+    const strategies = cachingStrategies();
+
+    strategies.forEach((strategy) => {
+      if (strategy.toUpperCase() === "PER-SESSION") {
+        if (window) {
+          window.sessionStorage.removeItem("PER-SESSION");
+        }
+      } else if (strategy.toUpperCase() === "RELOAD") {
+        new CacheStore("RELOAD").clearAllCaches();
+      }
+    });
+  }
+
+  /**
    * Set the cache value for the specified key.
    * @param key - The cache key.
    * @param value - The cache value.

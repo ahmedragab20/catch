@@ -123,6 +123,11 @@ export function supportedCachingStrategy(
   return cachingStrategies().includes(cache);
 }
 
+/**
+ * Returns the supported caching strategies.
+ * 
+ * @returns An array of supported caching strategies.
+ **/
 export function cachingStrategies(): string[] {
   return ["NO-CACHE", "PER-SESSION", "RELOAD"];
 }

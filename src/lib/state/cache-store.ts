@@ -71,4 +71,31 @@ export default class CacheStore implements ICacheStore {
   public isCached(key: string): boolean {
     return !!new AppWindowState(this.container).get()?.[key];
   }
+
+  /**
+   * Clear the caches for the specified key.
+   * @param key - The cache key.
+   * @returns True if the key is cached, false otherwise.
+   * @throws {Error} If the key is not cached.
+   **/
+  public clearCache(key: string): void {
+    if (!this.isCached(key)) {
+      console.warn(`The key ${key} is not cached.`);
+      return;
+    }
+
+    const { [key]: _, ...rest } = new AppWindowState(this.container).get();
+    new AppWindowState(this.container).update(rest);
+  }
+
+  /**
+   * Clear all the caches.
+   * @returns void
+    **/
+  public clearAllCaches(): void {
+    // TODO: Implement this method.
+    // TODO: expose the methods that are gonna be available to the user.
+
+    new AppWindowState(this.container).remove();
+  }
 }
