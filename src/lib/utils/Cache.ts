@@ -6,6 +6,8 @@ export default class Cache {
   // TODO:: add remove cache method with key
   // TODO:: add clear cache method (all)
   // TODO:: add update cache method with key
+  // TODO:: test adding more than one cache per strategy [use different keys and apis]
+
   private readonly _key: string = "NO-CACHE";
   private _cachedKeys = new Set<string>();
 
