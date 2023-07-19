@@ -1,12 +1,28 @@
-import { TCacheStrategy } from "../types";
+import { AppWindowState } from "./window";
 
-export default class CacheStore {
-  static readonly caches: Map<string, any> = new Map<string, any>();
+interface ICacheStore {
+  setCaches(key: string, value: any): void;
+  getCaches(key: string): any;
+}
 
-  static setCaches(key: TCacheStrategy, value: any): void {
-    CacheStore.caches.set(key, value);
+export default class CacheStore implements ICacheStore {
+  private readonly container: string;
+
+  constructor(container: string = "RELOAD") {
+    this.container = `${container}-CACHE`;
   }
-  static getCaches(key: TCacheStrategy): any {
-    return CacheStore.caches.get(key);
+
+  public setCaches(key: string, value: any): void {
+    new AppWindowState(this.container, {
+      [key]: value,
+    }).set({ updatable: true });
+  }
+
+  public getCaches(key: string): any {
+    return new AppWindowState(this.container).get()?.[key] || {};
+  }
+
+  public isCached(key: string): boolean {
+    return !!new AppWindowState(this.container).get()?.[key];
   }
 }

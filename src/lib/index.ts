@@ -134,17 +134,13 @@ export class Catch {
       };
 
       // Execute the request
-      const hasRequestInterceptor = !!this.config.onReq;
+      const hasRequestInterceptor = !!this.config.onReq; // to not execute the interceptor if it's not needed [performance]
 
       url = url || fullPath || customizedUrl;
 
       const cache = new Cache(cachingMechanism);
-
-      console.log("url", url);
-
+      
       if (cache.isCached(url)) {
-        console.log(cache.get(url));
-
         return cache.get(url);
       }
 
@@ -167,8 +163,6 @@ export class Catch {
       return data;
     } catch (error) {
       console.error(error);
-
-      //@ts-ignore
       return this.config?.onErr?.(error);
     }
   }

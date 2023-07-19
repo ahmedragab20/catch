@@ -72,7 +72,7 @@ const getProductsWithFullPath = async () => {
   try {
     const res = await fetch({
       fullPath: "https://dummyjson.com/products",
-      cache: "RELOAD",
+      cache: "PER-SESSION",
       options: {
         headers: { "Content-Type": "application/json" },
       },

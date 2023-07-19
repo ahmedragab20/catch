@@ -7,7 +7,7 @@ export default class Cache {
   // TODO:: add clear cache method (all)
   // TODO:: add update cache method with key
   private readonly _key: string = "NO-CACHE";
-  private _cachedKeys: string[] = [];
+  private _cachedKeys = new Set<string>();
 
   constructor(k: TCacheStrategy) {
     if (!supportedCachingStrategy(k)) {
@@ -20,36 +20,35 @@ export default class Cache {
   }
 
   public set cachedKeys(value: string) {
-    if (
-      !value ||
-      !this._cachedKeys?.length ||
-      this._cachedKeys.includes(value.toString())
-    ) {
-      return;
-    }
-
-    this._cachedKeys.push(value.toString());
+    this._cachedKeys.add(value);
   }
 
   public get cachedKeys(): string[] {
-    return this._cachedKeys;
+    return Array.from(this._cachedKeys);
   }
 
   public isCached(key: string): boolean {
-    if (this._key === "NO-CACHE") {
-      return this._cachedKeys.some((k) => k === key);
-    } else if (this._key === "PER-SESSION") {
-      return (
-        typeof this.getCacheReload(key) === "object" &&
-        !!Object.keys(this.getCachePerSession(key)).length
-      );
-    } else if (this._key === "RELOAD") {
-      return (
-        typeof this.getCacheReload(key) === "object" &&
-        !!Object.keys(!!this.getCacheReload(key)).length
-      );
-    } else {
-      return false;
+    switch (this._key) {
+      case "NO-CACHE":
+        return (
+          typeof this.getCacheNoCache(key) === "object" &&
+          !!this.getCacheNoCache(key) &&
+          Object.keys(this.getCacheNoCache(key)).length > 0
+        );
+      case "PER-SESSION":
+        return (
+          typeof this.getCachePerSession(key) === "object" &&
+          !!this.getCachePerSession(key) &&
+          Object.keys(this.getCachePerSession(key)).length > 0
+        );
+      case "RELOAD":
+        return (
+          typeof this.getCacheReload(key) === "object" &&
+          !!this.getCacheReload(key) &&
+          Object.keys(this.getCacheReload(key)).length > 0
+        );
+      default:
+        return false;
     }
   }
 
@@ -62,14 +61,6 @@ export default class Cache {
     this.cache.set("NO-CACHE", {
       [key]: value,
     });
-
-    console.log({
-      method: this._key,
-      key,
-      value,
-      cache: this.cache,
-    });
-
     //TODO:: useless but will back it later to make analyze the all the apis per session and filter the duplicated ones to speed up the app
   };
 
@@ -84,26 +75,19 @@ export default class Cache {
       [key]: value,
     });
 
-    console.log({
-      method: this._key,
-      key,
-      value,
-      cache: this.cache,
-    });
-
     if (window) {
       // set that in the session storage
       const sessionCache = window.sessionStorage.getItem("PER-SESSION");
 
       if (sessionCache) {
-        // convert to array
         const parsedSessionCache = JSON.parse(sessionCache);
-
-        parsedSessionCache[key] = value;
 
         window.sessionStorage.setItem(
           "PER-SESSION",
-          JSON.stringify(parsedSessionCache)
+          JSON.stringify({
+            ...parsedSessionCache,
+            [key]: value,
+          })
         );
 
         return;
@@ -111,7 +95,9 @@ export default class Cache {
 
       window.sessionStorage.setItem(
         "PER-SESSION",
-        JSON.stringify({ [key]: value })
+        JSON.stringify({
+          [key]: value,
+        })
       );
     }
   };
@@ -121,9 +107,9 @@ export default class Cache {
       const sessionCache = window.sessionStorage.getItem("PER-SESSION");
 
       if (sessionCache) {
-        const parsedSessionCache = JSON.parse(sessionCache);
+        const parsedSessionCache = JSON.parse(sessionCache) || {};
 
-        return parsedSessionCache[key] || {};
+        return parsedSessionCache?.[key] || {};
       }
     }
   };
@@ -133,25 +119,15 @@ export default class Cache {
       [key]: value,
     });
 
-    CacheStore.setCaches("RELOAD", {
-      [key]: value,
-    });
-
-    console.log({
-      method: this._key,
-      key,
-      value,
-      cache: this.cache,
-      storedCache: this.getCacheReload(key),
-    });
+    new CacheStore("RELOAD").setCaches(key, value);
   };
 
   private readonly getCacheReload = (key: string): any => {
     // convert the cache to an array and filter it by the key
 
-    const cache = CacheStore.getCaches("RELOAD");
+    const cache = new CacheStore(this._key);
 
-    return cache?.[key] || {};
+    return cache.getCaches(key) || {};
   };
 
   public set(key: string, value: any): void {
@@ -161,9 +137,7 @@ export default class Cache {
       );
     }
 
-    if (!this.isCached(key)) {
-      this._cachedKeys.push(key);
-    }
+    this._cachedKeys.add(key);
 
     switch (this._key) {
       case "NO-CACHE":
