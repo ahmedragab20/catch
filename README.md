@@ -1,2 +1,2 @@
-# catch
-Catch is the new hotness for data fetching
+⚠️⚠️⚠️
+THIS REPO IS NO LONGER ON PROGRESS, IF YOU WANNA BE UPDATED WITH THE NEW CHANGES ON THE LIBRARY, GO THERE: https://github.com/ahmedragab20/ar-catch
